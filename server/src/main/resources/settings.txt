@@ -1,0 +1,6 @@
+{
+    "name": "settings",
+    "attributes": {
+        "max-file-threads": 6
+    }
+}
