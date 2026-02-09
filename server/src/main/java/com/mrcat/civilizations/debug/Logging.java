@@ -32,7 +32,7 @@ public class Logging {
         message = formatLog(message);
         logRegistry.add(message);
         System.out.println(message);
-        if (writeable) rh.write(path, rh.read(path) + message + "\n");
+        if (writeable) rh.write(path, message + "\n", true);
     }
     
     public String formatLog(String message) {

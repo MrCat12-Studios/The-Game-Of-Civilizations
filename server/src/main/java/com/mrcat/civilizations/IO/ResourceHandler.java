@@ -29,8 +29,8 @@ public class ResourceHandler {
         }
     }
     
-    public void write(String message, String path) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+    public void write(String path, String message, Boolean append) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path, append))) {
             bw.write(message);
         }
         catch (IOException ex) {

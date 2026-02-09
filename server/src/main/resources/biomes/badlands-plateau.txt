@@ -1,0 +1,6 @@
+{
+    "type": "biome",
+    "name": "badlands-plateau",
+    "attributes": {
+        
+    }

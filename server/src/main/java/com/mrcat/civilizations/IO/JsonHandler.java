@@ -17,6 +17,7 @@ public class JsonHandler {
     Logging logging = Logging.getInstance();
     ResourceHandler rh = new ResourceHandler();
     Gson gson = new Gson();
+    Gson gsonBuild = new GsonBuilder().setPrettyPrinting.create();
     
     Runnable onUse = () -> {};
     Runnable onEquip = () -> {};
@@ -37,6 +38,10 @@ public class JsonHandler {
             // to do
         }
         return new Json();
+    }
+    
+    public void writeJson(String path, Json json) {
+        
     }
 
     public Entity generateEntity(Json json) {
@@ -80,17 +85,21 @@ public class JsonHandler {
         JsonObject events = getVal("events", json).getAsJsonObject();
         
         boolean isEquiped = false;
-        for (String val : events.keySet()) {
-            switch (val) {
+        String onEquipTxt = "";
+        String onUseTxt = "";
+        for (String key : events.keySet()) {
+            switch (key) {
                 case "is-equiped":
-                    if (events.get(val).getAsBoolean()) isEquiped = true;
+                    if (events.get(key).getAsBoolean()) isEquiped = true;
                     break;
                 case "on-equip":
-                    switch (events.get(val).getAsString().substring(0, events.get(val).toString().length() - 3)) {
+                    switch (events.get(key).getAsString().substring(0, events.get(key).toString().length() - 3)) {
                         case "protection":
+                            onEquipTxt = "protection";
                             onEquip = () -> { }; // to do
                             break;
                         case "damage":
+                            onEquipTxt = "damage";
                             onEquip = () -> { }; // to do
                             break;
                     }
@@ -107,6 +116,8 @@ public class JsonHandler {
             }
         };
         eventsObj.isEquiped = isEquiped;
+        eventsObj.onEquip = onEquipTxt;
+        eventsObj.onUse = onUseTxt;
         Item item = new Item();
         switch (json.type) {
             case "Item":
@@ -123,11 +134,17 @@ public class JsonHandler {
         if (json.attributes.containsKey(key)) return json.attributes.get(key);
         return null;
     }
-
+    
     public class Json {
 
         String type;
         String name;
         Map<String, JsonElement> attributes;
+
+        public Json(String type, String name, Map<String, JsonElement> attributes) {
+            this.type = type;
+            this.name = name;
+            this.attributes = attributes;
+        }
     }
 }
