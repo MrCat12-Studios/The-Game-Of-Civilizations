@@ -10,7 +10,7 @@ plugins {
     id 'application'
 }
 
-buildDir = "../builds/server"
+buildDir = "../builds/client"
 
 jar {
     manifest {

@@ -12,3 +12,4 @@ plugins {
 
 rootProject.name = 'The-Game-Of-Civilizations'
 include('server')
+include('client')

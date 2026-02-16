@@ -4,15 +4,20 @@ import java.io.File;
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.InputMismatchException;
 import com.mrcat.civilizations.debug.Logging;
 import com.mrcat.civilizations.IO.*;
 import com.mrcat.civilizations.map.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonArray;
 
 public class Main {
     
     Logging logging = Logging.getInstance(); 
     ResourceHandler rh = new ResourceHandler();
+    JsonHandler jh = new JsonHandler();
     String text = "";
 
     public static void main(String[] args) {
@@ -71,32 +76,26 @@ public class Main {
     public void generateWorld() {
         System.out.println("Input world name. Keep in mind that spaces and slashes (/) not allowed:\n");
         Scanner scanner = new Scanner(System.in);
-        new File("worlds/" + scanner.nextLine()).mkdir();
+        String worldName = scanner.nextLine();
+        new File("worlds/" + worldName).mkdir();
         System.out.println("Input seed (Enter \"0\" for a random seed):\n");
         double seed = scanner.nextDouble();
         scanner.nextLine();
         NoiseGenerator noiseGen = new NoiseGenerator(seed);
         double[][] altitude = new double[180][240];
-        for (int y = 0; y < 180; y++) {
-            for (int x = 0; x < 240; x++) {
-                altitude[y][x] = (double) Math.round(noiseGen.noise(x, y) * 100) / 100;
-                rh.write("test.txt", altitude[y][x] + " ", true);
-            }
-            rh.write("test.txt", "\n", true);
-        }
         double[][] temperature = new double[180][240];
-        for (int y = 0; y < 180; y++) {
-            for (int x = 0; x < 240; x++) {
-                temperature[y][x] = (double) Math.round(noiseGen.noise(x + 1000, y + 1000) * 100) / 100;
-            }
-        }
         double[][] humidity = new double[180][240];
         for (int y = 0; y < 180; y++) {
             for (int x = 0; x < 240; x++) {
+                altitude[y][x] = (double) Math.round(noiseGen.noise(x, y) * 100) / 100;
+                temperature[y][x] = (double) Math.round(noiseGen.noise(x + 1000, y + 1000) * 100) / 100;
                 humidity[y][x] = (double) Math.round(noiseGen.noise(x - 1000, y - 1000) * 100) / 100;
             }
         }
         Chunk[][] chunks = new Chunk[180][240];
+        Map<String, JsonElement> attributes = new HashMap<>();
+        JsonArray row = new JsonArray();
+        JsonArray rows = new JsonArray();
         String biome;
         for (int y = 0; y < 180; y++) {
             for (int x = 0; x < 240; x++) {
@@ -147,8 +146,13 @@ public class Main {
                 else { // waters
                     biome = "waters";
                 }
+                row.add(biome);
                 chunks[y][x] = new Chunk(biome);
             }
+            rows.add(row);
+            row = new JsonArray();
+            attributes.put("map", rows);
         }
+        Json json = new Json("world", worldName, world);
     }
 }

@@ -17,10 +17,10 @@ public class JsonHandler {
     Logging logging = Logging.getInstance();
     ResourceHandler rh = new ResourceHandler();
     Gson gson = new Gson();
-    Gson gsonBuild = new GsonBuilder().setPrettyPrinting.create();
+    Gson gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
     
-    Runnable onUse = () -> {};
-    Runnable onEquip = () -> {};
+    Runnable onUseEvent = () -> {};
+    Runnable onEquipEvent = () -> {};
 
     public Json parseJson(String path, boolean fromJar) {
         try {
@@ -37,11 +37,11 @@ public class JsonHandler {
         catch (IOException ex) {
             // to do
         }
-        return new Json();
+        return null;
     }
     
     public void writeJson(String path, Json json) {
-        
+        rh.write(path, gsonBuilder.toJson(json), false);
     }
 
     public Entity generateEntity(Json json) {
@@ -96,11 +96,11 @@ public class JsonHandler {
                     switch (events.get(key).getAsString().substring(0, events.get(key).toString().length() - 3)) {
                         case "protection":
                             onEquipTxt = "protection";
-                            onEquip = () -> { }; // to do
+                            onEquipEvent = () -> { }; // to do
                             break;
                         case "damage":
                             onEquipTxt = "damage";
-                            onEquip = () -> { }; // to do
+                            onEquipEvent = () -> { }; // to do
                             break;
                     }
                     break;
@@ -108,11 +108,11 @@ public class JsonHandler {
         }
         Events eventsObj = new Events() {
             public void onEquip() {
-                onEquip.run();
+                onEquipEvent.run();
             }
             
             public void onUse() {
-                onUse.run();
+                onUseEvent.run();
             }
         };
         eventsObj.isEquiped = isEquiped;
