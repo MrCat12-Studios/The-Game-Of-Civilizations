@@ -62,7 +62,7 @@ public class Main {
         options.add("Play existing");
         String selOption = selectOption(options, "Select option:\n");
         if (selOption == "New world") {
-            generateWorld();
+            String worldName = generateWorld();
         }
         else {
             options = new ArrayList<>();
@@ -73,7 +73,7 @@ public class Main {
         }
     }
 
-    public void generateWorld() {
+    public String generateWorld() {
         System.out.println("Input world name. Keep in mind that spaces and slashes (/) not allowed:\n");
         Scanner scanner = new Scanner(System.in);
         String worldName = scanner.nextLine();
@@ -153,6 +153,10 @@ public class Main {
             row = new JsonArray();
             attributes.put("map", rows);
         }
-        Json json = new Json("world", worldName, world);
+        JsonHandler.Json json = jh.new Json("world", worldName, attributes);
+        String path = "worlds/" + worldName + "/";
+        rh.newFile(path);
+        jh.writeJson(path, json);
+        return worldName;
     }
 }
