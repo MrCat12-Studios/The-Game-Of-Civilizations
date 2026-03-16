@@ -24,7 +24,7 @@ public class ResourceHandler {
             return file;
         }
         catch (IOException ex) {
-            logging.addLog("Could not create file. | " + ex.toString(), logging.logExists());
+            logging.addLog("Could not create file | " + ex.getMessage(), logging.logExists());
             return null;
         }
     }
@@ -34,17 +34,17 @@ public class ResourceHandler {
             bw.write(message);
         }
         catch (IOException ex) {
-            logging.addLog(logging.formatLog("Could not write to the selected file | ") + ex.toString(), false);
+            logging.addLog("Could not write to the selected file | " + ex.getMessage(), false);
         }
     }
 
     public String read(String path) {
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String content = "";
-            while (br.read() != -1) content += br.readLine() + "\n";
+            while ((content = br.readLine()) != null) content += br.readLine() + "\n";
         }
         catch (IOException ex) {
-            logging.addLog(logging.formatLog("Could not read from the selected file | ") + ex.toString(), false);
+            logging.addLog("Could not read from the selected file | " + ex.getMessage(), false);
         }
         return null;
     }
@@ -54,8 +54,8 @@ public class ResourceHandler {
         return br;
     }
 
-    public InputStream getInputStream(String path) {
-        BufferedInputStream bs = new BufferedInputStream(getClass().getClassLoader().getResourceAsStream(path));
+    public InputStream getInputStream(String path) throws IOException {
+        BufferedInputStream bs = new BufferedInputStream(new FileInputStream(path));
         return bs;
     }
 
@@ -65,7 +65,7 @@ public class ResourceHandler {
                 return bs.readAllBytes();
             }
             catch (IOException ex) {
-                logging.addLog(logging.formatLog("Could not read from the selected file | ") + ex.toString(), false);
+                logging.addLog("Could not read from the selected file | " + ex.getMessage(), false);
             }
         }
         else {

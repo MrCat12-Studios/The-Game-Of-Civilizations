@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'com.gradleup.shadow' version '9.3.1'
 }
 
 buildDir = "../builds/server"
@@ -15,7 +16,7 @@ buildDir = "../builds/server"
 jar {
     manifest {
         attributes(
-            'Main-Class': 'com.mrcat.civilizations.main.Main'
+            'Main-Class': 'com.mrcat.civilizations.Main'
         )
     }
     
@@ -34,17 +35,14 @@ dependencies {
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     
-    implementation libs.gson
-}
-
-// Apply a specific Java toolchain to ease working on different environments.
-java {
+    implementation project(':core')
     
+    implementation libs.gson
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.mrcat.civilizations.main.Main'
+    mainClass = 'com.mrcat.civilizations.Main'
 }
 
 tasks.named('test') {

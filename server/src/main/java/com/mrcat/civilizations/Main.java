@@ -1,4 +1,4 @@
-package com.mrcat.civilizations.main;
+package com.mrcat.civilizations;
 
 import java.io.File;
 import java.util.Scanner;
@@ -6,19 +6,23 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.InputMismatchException;
 import com.mrcat.civilizations.debug.Logging;
 import com.mrcat.civilizations.IO.*;
+import com.mrcat.civilizations.entity.Entity;
 import com.mrcat.civilizations.map.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 
 public class Main {
     
+    Scanner scanner = new Scanner(System.in);
     Logging logging = Logging.getInstance(); 
     ResourceHandler rh = new ResourceHandler();
     JsonHandler jh = new JsonHandler();
     String text = "";
+    World world;
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -35,12 +39,12 @@ public class Main {
             rh.newFile("settings.json");
             new File("worlds").mkdir();
         }
+        logging.createLog("/sdcard/Download"); // change this on release
     }
 
     private String selectOption(List<String> options, String question) {
         System.out.println(question);
         int count = 0;
-        Scanner scanner = new Scanner(System.in);
         for (String option : options) {
             count++;
             System.out.println("  " + count + ") " + option);
@@ -55,32 +59,57 @@ public class Main {
             }
         }
     }
-    
+
     private void selectWorld() {
         List<String> options = new ArrayList<>();
         options.add("New world");
         options.add("Play existing");
         String selOption = selectOption(options, "Select option:\n");
+        scanner.nextLine();
+        String worldName;
         if (selOption == "New world") {
-            String worldName = generateWorld();
+            System.out.println("Input world name. Keep in mind that spaces and slashes (/) not allowed:\n");
+            worldName = scanner.nextLine();
+            System.out.println("Input seed (Enter \"0\" for a random seed):\n");
+            double seed = scanner.nextDouble();
+            scanner.nextLine();
+            world = generateWorld(worldName, seed);
         }
         else {
             options = new ArrayList<>();
             for (String path : new File("worlds").list()) {
-                if (new File(path).isDirectory()) options.add(new File(path).getName());
+                if (new File("worlds/" + path).isDirectory()) {
+                    options.add(new File("worlds/" + path).getName());
+                }
             }
-            String selWorld = selectOption(options, "Select world:\n");
+            worldName = selectOption(options, "Select world:\n");
+            Json json = jh.parseJson("worlds/" + worldName + "/world.json", false);
+            JsonArray rows = json.attributes.get("map").getAsJsonArray();
+            Chunk[][] chunks = new Chunk[180][240];
+            for (int y = 0; y < 180; y++) {
+                JsonArray row = rows.get(y).getAsJsonArray();
+                for (int x = 0; x < 240; x++) {
+                    chunks[y][x] = new Chunk(row.get(x).getAsString());
+                }
+            }
+            world = new World(chunks);
         }
+        File dir = new File("worlds/" + worldName + "/entities");
+        if (dir.exists()) {
+            if (dir.listFiles().length > 0) for (File i : dir.listFiles()) {
+                Json json = jh.parseJson(i, false);
+                jh.generateEntity(json);
+            }
+        }
+        else {
+            dir.mkdir();
+        }
+        GameServer server = new GameServer();
+        server.startServer();
     }
 
-    public String generateWorld() {
-        System.out.println("Input world name. Keep in mind that spaces and slashes (/) not allowed:\n");
-        Scanner scanner = new Scanner(System.in);
-        String worldName = scanner.nextLine();
+    private World generateWorld(String worldName, double seed) {
         new File("worlds/" + worldName).mkdir();
-        System.out.println("Input seed (Enter \"0\" for a random seed):\n");
-        double seed = scanner.nextDouble();
-        scanner.nextLine();
         NoiseGenerator noiseGen = new NoiseGenerator(seed);
         double[][] altitude = new double[180][240];
         double[][] temperature = new double[180][240];
@@ -153,10 +182,14 @@ public class Main {
             row = new JsonArray();
             attributes.put("map", rows);
         }
-        JsonHandler.Json json = jh.new Json("world", worldName, attributes);
+        Json json = new Json("world", worldName, attributes);
         String path = "worlds/" + worldName + "/";
-        rh.newFile(path);
-        jh.writeJson(path, json);
-        return worldName;
+        rh.newFile(path + "world.json");
+        jh.writeJson(path + "world.json", json);
+        return new World(chunks);
+    }
+
+    private void setPlayers() {
+        
     }
 }
