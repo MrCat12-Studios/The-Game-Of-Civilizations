@@ -50,6 +50,14 @@ public class JsonHandler {
         writeJson(file.getPath(), json);
     }
 
+    public void writeJson(String path, String json) {
+        rh.write(path, json, false);
+    }
+
+    public void write(File file, String json) {
+        writeJson(file.getPath(), json);
+    }
+
     public Entity generateEntity(Json json) {
         String id = getVal("id", json).getAsString();
         Integer maxHealth = getVal("max-health", json).getAsInt();

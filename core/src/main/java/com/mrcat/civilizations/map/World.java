@@ -1,10 +1,12 @@
 package com.mrcat.civilizations.map;
 
 public class World {
+
+    public static String name;
+    public static Chunk[][] chunks = new Chunk[180][240];
     
-    public Chunk[][] chunks = new Chunk[180][240];
-    
-    public World(Chunk[][] chunks) {
-        this.chunks = chunks;
+    public World(String name, Chunk[][] chunks) {
+        World.name = name;
+        World.chunks = chunks;
     }
 }

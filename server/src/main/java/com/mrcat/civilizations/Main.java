@@ -16,7 +16,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 
 public class Main {
-    
+
     Scanner scanner = new Scanner(System.in);
     Logging logging = Logging.getInstance(); 
     ResourceHandler rh = new ResourceHandler();
@@ -92,7 +92,7 @@ public class Main {
                     chunks[y][x] = new Chunk(row.get(x).getAsString());
                 }
             }
-            world = new World(chunks);
+            world = new World(worldName, chunks);
         }
         File dir = new File("worlds/" + worldName + "/entities");
         if (dir.exists()) {
@@ -186,7 +186,7 @@ public class Main {
         String path = "worlds/" + worldName + "/";
         rh.newFile(path + "world.json");
         jh.writeJson(path + "world.json", json);
-        return new World(chunks);
+        return new World(worldName, chunks);
     }
 
     private void setPlayers() {
