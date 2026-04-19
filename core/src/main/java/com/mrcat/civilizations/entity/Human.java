@@ -2,102 +2,92 @@ package com.mrcat.civilizations.entity;
 
 import java.util.List;
 import java.util.ArrayList;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.mrcat.civilizations.map.Position;
 import com.mrcat.civilizations.resources.*;
 
-public class Human extends Animal {
+public class Human extends Gearable implements Moveable, Attackable, Craftable, Pickable, Sleepable {
+
+    public boolean isSleeping = false;
+    public List<Recipe> recipes = new ArrayList<>();
+    public int energy = 100;
     
-    public enum Slot {
-        INVENTORY,
-        HAND,
-        OFFHAND,
-        HEAD,
-        BODY,
-        LEGS
+    public Human(String name, int health, int damage, int groundSpeed, int swimmingSpeed, int size, int sight, int maxWeight, List<Recipe> recipies) {
+        super(name, health, damage, groundSpeed,  swimmingSpeed, size, sight, maxWeight);
+        this.recipes = recipes;
     }
 
-    protected List<Item> inventory = new ArrayList<>();
-    protected int maxWeight;
-    protected int weight;
-    public Tool hand;
-    public Tool offhand;
-    public Tool head;
-    public Tool body;
-    public Tool legs;
-
-    public Human(String name, int health, int damage, int groundSpeed, int swimmingSpeed, int size, int sight, int maxWeight) {
-        super(name, health, damage, groundSpeed, swimmingSpeed, size, sight, new ArrayList<>());
+    public Human(String name, int health, int damage, int groundSpeed, int swimmingSpeed, int size, int sight, int maxWeight, List<Recipe> recipies, List<Item> inventory) {
+        super(name, health, damage, groundSpeed, swimmingSpeed, size, sight, maxWeight, inventory);
+        this.recipes = recipes;
     }
 
-    public Human(String name, int health, int damage, int groundSpeed, int swimmingSpeed, int size, int sight, int maxWeight, List<Item> inventory) {
-        super(name, health, damage, groundSpeed, swimmingSpeed, size, sight, inventory);
-        int weight = 0;
-        for (Item i : inventory) weight += i.weight;
-        if (weight <= maxWeight) this.weight = weight;
+    public Human(Gearable g, List<Recipe> recipies) {
+        super(g.name, g.health, g.damage, g.groundSpeed, g.swimmingSpeed, g.size, g.sight, g.maxWeight, g.inventory);
+        this.recipes = recipes;
     }
 
-    public void addItem(Item item, Slot slot) {
-        if (weight + item.weight > maxWeight) return;
-        switch (slot) {
-            case Slot.INVENTORY:
-                inventory.add(item);
-                break;
-            case HAND:
-                removeItem(getIndex(item));
-                addItem(hand, Slot.INVENTORY);
-                hand = (Tool) item;
-                break;
-            case OFFHAND:
-                removeItem(getIndex(item));
-                addItem(offhand, Slot.INVENTORY);
-                offhand = (Tool) item;
-                break;
-            case HEAD:
-                removeItem(getIndex(item));
-                addItem(head, Slot.INVENTORY);
-                head = (Tool) item;
-                break;
-            case BODY:
-                removeItem(getIndex(item));
-                addItem(body, Slot.INVENTORY);
-                body = (Tool) item;
-                break;
-            case LEGS:
-                removeItem(getIndex(item));
-                addItem(legs, Slot.INVENTORY);
-                legs = (Tool) item;
-                break;
+    @Override
+    public void craft(Recipe recipe, Building building) {
+        if (building.recipes.contains(recipe)) {
+            Collectable collectable = new Collectable(recipe.product.name, recipe.product);
+            collectable.position = position;
         }
-        refreshLoot();
     }
 
-    public void removeItem(int index) {
-        inventory.remove(index);
-        Item item = getItem(index);
-        refreshLoot();
+    @Override
+    public void moveTo(int x, int y) {
+        Position newPos = new Position(x, y);
+        if (inRange(newPos, 1) && !inRange(newPos, 0) && energy - 25 >= 0) {
+            energy -= 25;
+            setPosition(x, y);
+            isUpdated = true;
+        }
     }
 
-    public Item getItem(int index) {
-        return inventory.get(index);
+    @Override
+    public void attack(Entity entity) {
+        if (inRange(entity.position, 1) && energy - 40 >= 0) {
+            entity.getDamaged(damage + hand.damage);
+            isUpdated = true;
+        }
+    }
+    
+    @Override
+    public boolean pick(Collectable c) {
+        isUpdated = true;
+        return c.collect(this);
     }
 
-    public int getIndex(Item item) {
-        return inventory.indexOf(item);
+    @Override
+    public void sleep() { // TODO
+        energy = 100;
+        isUpdated = true;
     }
 
-    public List<Item> getInventory() {
-        return inventory;
+    public void mine(Item i) {
+        new Collectable(i.name, i);
     }
-
-    public void refreshLoot() {
-        super.loot = inventory;
-        loot.add(hand);
-        loot.add(offhand);
-        loot.add(head);
-        loot.add(body);
-        loot.add(legs);
-    }
-
-    public void use() {
-        
+    
+    public void updateJson() {
+        json.attributes.put("maxHealth", new JsonPrimitive(maxHealth));
+        json.attributes.put("health", new JsonPrimitive(health));
+        json.attributes.put("damage", new JsonPrimitive(damage));
+        json.attributes.put("groundSpeed", new JsonPrimitive(groundSpeed));
+        json.attributes.put("swimmingSpeed", new JsonPrimitive(swimmingSpeed));
+        json.attributes.put("size", new JsonPrimitive(size));
+        json.attributes.put("ethnicity", new JsonPrimitive(ethnicity));
+        json.attributes.put("sight", new JsonPrimitive(sight));
+        JsonArray coords = new JsonArray();
+        coords.add(position.x);
+        coords.add(position.y);
+        json.attributes.put("position", coords);
+        json.attributes.put("energy", new JsonPrimitive(energy));
+        JsonObject riderObj = new JsonObject();
+        for (String i : rider.json.attributes.keySet()) riderObj.add(i, rider.json.attributes.get(i));
+        json.attributes.put("rider", riderObj);
+        isUpdated = true;
     }
 }

@@ -11,14 +11,17 @@ import java.util.InputMismatchException;
 import com.mrcat.civilizations.debug.Logging;
 import com.mrcat.civilizations.IO.*;
 import com.mrcat.civilizations.entity.Entity;
+import com.mrcat.civilizations.entity.Human;
 import com.mrcat.civilizations.map.*;
+import com.mrcat.civilizations.GameServer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 
 public class Main {
 
     Scanner scanner = new Scanner(System.in);
-    Logging logging = Logging.getInstance(); 
+    Logging logging = Logging.getInstance();
+    Rounds rounds = Rounds.getInstance();
     ResourceHandler rh = new ResourceHandler();
     JsonHandler jh = new JsonHandler();
     String text = "";
@@ -31,15 +34,11 @@ public class Main {
     } 
 
     private void createFiles() {
+        logging.createLog("");
         File file = new File("settings.json");
-        if (file.exists()) {
-            text = rh.read("settings.json");
-        }
-        else {
-            rh.newFile("settings.json");
-            new File("worlds").mkdir();
-        }
-        logging.createLog("/sdcard/Download"); // change this on release
+        //rh.newFile("settings.json");
+        //text = rh.read("settings.json");
+        new File("worlds").mkdir();
     }
 
     private String selectOption(List<String> options, String question) {
@@ -74,6 +73,16 @@ public class Main {
             double seed = scanner.nextDouble();
             scanner.nextLine();
             world = generateWorld(worldName, seed);
+            Human human;
+            Position pos;
+            for (int i = 0; i < rounds.playerList.size(); i++) {
+                pos = new Position((i + 1) * 240 / rounds.playerList.size() + 1, 0);
+                for (int j = 0; j < 10; j++) {
+                    human = (Human) jh.generateEntity(jh.parseJson("entities/human.json"));
+                    human.position = pos;
+                    human.position.y = j;
+                }
+            }
         }
         else {
             options = new ArrayList<>();
@@ -106,6 +115,18 @@ public class Main {
         }
         GameServer server = new GameServer();
         server.startServer();
+        File file = new File("worlds/" + worldName + "/round.json");
+        boolean roundsExist = true;
+        if (!file.exists()) {
+            rh.newFile(file.getPath());
+            roundsExist = false;
+        }
+        rounds.startRounds(roundsExist);
+        if (scanner.nextLine().equals("exit")) {
+            for (Entity e : Entity.entities.values()) jh.writeJson("worlds/" + World.name + "/entities/" + e.name + ".json", e.json);
+            rounds.save();
+            return;
+        }
     }
 
     private World generateWorld(String worldName, double seed) {

@@ -2,7 +2,7 @@ package com.mrcat.civilizations.resources;
 
 public class Item {
     
-    private String name;
+    public String name;
     public int weight;
     
     public Item(String name, int weight) {

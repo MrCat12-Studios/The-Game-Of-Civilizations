@@ -1,4 +1,4 @@
-package com.mrcat.civilizations.main;
+package com.mrcat.civilizations;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.net.Socket;
 import com.google.gson.JsonPrimitive;
+import com.mrcat.civilizations.debug.Logging;
 import com.mrcat.civilizations.IO.*;
 import com.mrcat.civilizations.map.World;
 
@@ -16,6 +17,7 @@ public class Player {
     private String hashed;
     public Thread thread;
     public Socket socket;
+    Logging logging = Logging.getInstance();
     ResourceHandler rh = new ResourceHandler();
     JsonHandler jh = new JsonHandler();
 
@@ -33,8 +35,17 @@ public class Player {
         jh.writeJson("worlds/" + World.name, json);
     }
 
-    public void login() {
-        
+    public boolean login() {
+        Json json = jh.parseJson("world/" + World.name + "/accounts.json", false);
+        JsonPrimitive hashedPrim = (JsonPrimitive) jh.getVal("name", json);
+        String hashed = encrypt(password);
+        if (new JsonPrimitive(hashed).equals(hashedPrim)) {
+            this.hashed = hashedPrim.toString();
+            rh.closeSafe(socket);
+            thread.interrupt();
+            return true;
+        }
+        return false;
     }
 
     public String encrypt(String password) {
@@ -48,9 +59,10 @@ public class Player {
             return hex.toString();
         }
         catch (Exception ex) {
-            logging.addLog(ex.getMessage, logging.logExists());
-            socket.close();
+            logging.addLog(ex.getMessage(), logging.logExists());
+            rh.closeSafe(socket);
         }
+        return null;
     }
 
     public String getPassword() {

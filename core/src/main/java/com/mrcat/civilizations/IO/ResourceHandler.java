@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.BufferedInputStream;
 import com.mrcat.civilizations.debug.Logging;
 import java.nio.charset.StandardCharsets;
+import java.io.Closeable;
 
 public class ResourceHandler {
     
@@ -20,7 +21,7 @@ public class ResourceHandler {
     public File newFile(String path) {
         File file = new File(path);
         try {
-            file.createNewFile();
+            if (!file.exists()) file.createNewFile();
             return file;
         }
         catch (IOException ex) {
@@ -79,5 +80,14 @@ public class ResourceHandler {
     
     public String convertBytes(byte[] bytes) {
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+    
+    public void closeSafe(Closeable closeable) {
+        try {
+            closeable.close();
+        }
+        catch (IOException ex) {
+            // ...
+        }
     }
 }

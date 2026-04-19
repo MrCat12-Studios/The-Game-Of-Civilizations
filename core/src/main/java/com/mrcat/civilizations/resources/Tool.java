@@ -6,8 +6,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Tool extends Item {
-    
-    public String name;
+
     public int maxDurability;
     public int durability;
     public String equipSlot;

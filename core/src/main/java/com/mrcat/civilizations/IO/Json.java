@@ -16,6 +16,7 @@ public class Json {
         this.attributes = attributes;
     }
 
+    @Override
     public String toString() {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this);
     }

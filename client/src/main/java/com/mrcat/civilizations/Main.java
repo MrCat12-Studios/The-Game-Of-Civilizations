@@ -2,7 +2,7 @@ package com.mrcat.civilizations;
 
 import java.util.Scanner;
 import java.net.UnknownHostException;
-import com.mrcat.civilizations.IO.ClientSocket;
+
 import com.mrcat.civilizations.debug.Logging;
 
 public class Main {
